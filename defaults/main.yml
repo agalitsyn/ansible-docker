@@ -1,4 +1,6 @@
 ---
 
+docker_group_member: "{{ ansible_user }}"
+
 # https://docs.docker.com/compose/install/
 docker_compose_version: "1.29.2"

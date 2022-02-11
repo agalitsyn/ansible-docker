@@ -36,7 +36,7 @@
 
 - name: Add user to docker group
   user:
-    name: "{{ansible_user}}"
+    name: "{{ docker_group_member }}"
     group: docker
 
 - name: Download docker-compose {{ docker_compose_version }}
