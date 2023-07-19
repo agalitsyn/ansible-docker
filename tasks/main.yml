@@ -33,6 +33,7 @@
     - docker-ce
     - docker-ce-cli
     - containerd.io
+    - ctop
 
 - name: Add user to docker group
   user:
