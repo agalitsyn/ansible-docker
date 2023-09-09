@@ -20,7 +20,7 @@
 
 - name: Add apt repository for stable version
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
     state: present
 
 - name: Install Docker
@@ -33,23 +33,11 @@
     - docker-ce
     - docker-ce-cli
     - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
     - ctop
 
 - name: Add user to docker group
   user:
     name: "{{ docker_group_member }}"
     group: docker
-
-- name: Download docker-compose {{ docker_compose_version }}
-  get_url:
-    url : https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
-    dest: ~/docker-compose
-    mode: '+x'
-
-- name: Check docker-compose exists
-  stat: path=~/docker-compose
-  register: docker_compose
-
-- name: Move docker-compose to /usr/local/bin/docker-compose
-  command: mv ~/docker-compose /usr/local/bin/docker-compose
-  when: docker_compose.stat.exists

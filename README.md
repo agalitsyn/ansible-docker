@@ -1,3 +1,3 @@
-# Ansible docker
+# Ansible Docker
 
-Ansible role for installing Docker and docker-compose
+Ansible role for installing Docker

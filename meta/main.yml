@@ -3,4 +3,4 @@ galaxy_info:
   platforms:
     - name: Ubuntu
       versions:
-        - focal
+        - jammy # 22.04
