@@ -1,6 +1,6 @@
 galaxy_info:
-  min_ansible_version: 2.6
+  min_ansible_version: '2.6'
   platforms:
     - name: Ubuntu
       versions:
-        - jammy # 22.04
+        - noble
