@@ -1,6 +1,17 @@
 galaxy_info:
-  min_ansible_version: '2.6'
+  role_name: docker
+  namespace: agalitsyn
+  author: agalitsyn
+  description: Install Docker Engine, Buildx and Compose from Docker's apt repository
+  license: MIT
+  min_ansible_version: '2.15'
   platforms:
     - name: Ubuntu
       versions:
         - noble
+        - resolute
+  galaxy_tags:
+    - docker
+    - containers
+
+dependencies: []

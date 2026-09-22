@@ -1,3 +1,56 @@
 ---
 
+# User added to the `docker` supplementary group. Membership is equivalent
+# to root on the host, so keep this to accounts you already trust as admins.
 docker_group_member: "{{ ansible_user }}"
+
+docker_apt_key_url: "https://download.docker.com/linux/ubuntu/gpg"
+docker_apt_keyring: /etc/apt/keyrings/docker.asc
+docker_apt_uri: "https://download.docker.com/linux/ubuntu"
+docker_apt_components: stable
+
+# Docker occasionally lags behind a fresh Ubuntu release. The role probes
+# for the running release first and falls back to this suite if Docker has
+# not published for it yet.
+docker_apt_suite: "{{ ansible_facts['distribution_release'] }}"
+docker_apt_suite_fallback: noble
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_extra_packages: []
+
+docker_service_enabled: true
+docker_service_state: started
+
+# Merged into /etc/docker/daemon.json. Unbounded json-file logs are the
+# usual way a small node fills its disk, hence the rotation defaults.
+docker_daemon_options:
+  log-driver: json-file
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  live-restore: true
+
+# Docker inserts its rules into the nat PREROUTING and filter FORWARD
+# chains, which are evaluated before ufw-input. Published container ports
+# are therefore reachable from anywhere even under `ufw default deny
+# incoming`, and never show up in `ufw status`.
+#
+# When true, the role installs a DOCKER-USER filter block in
+# /etc/ufw/after.rules so that container traffic is denied by default.
+# Published ports then have to be opened explicitly with:
+#
+#     ufw route allow proto tcp from any to any port 8080
+#
+# Set to false to keep Docker's default "publishing a port exposes it".
+docker_ufw_integration: true
+# Networks allowed to reach containers without a `ufw route` rule.
+docker_ufw_internal_networks:
+  - 172.16.0.0/12
+  - 192.168.0.0/16
+  - 10.0.0.0/8

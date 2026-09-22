@@ -1,0 +1,33 @@
+*filter
+:ufw-user-forward - [0:0]
+:ufw-docker-logging-deny - [0:0]
+:DOCKER-USER - [0:0]
+
+# Hand container traffic to ufw's route rules, so `ufw route allow ...`
+# is what opens a published port.
+-A DOCKER-USER -j ufw-user-forward
+
+# Traffic originating inside these networks is left alone: container to
+# container and host to container must keep working.
+{% for net in docker_ufw_internal_networks %}
+-A DOCKER-USER -j RETURN -s {{ net }}
+{% endfor %}
+
+# DNS replies back to ephemeral ports.
+-A DOCKER-USER -p udp -m udp --sport 53 --dport 1024:65535 -j RETURN
+
+# Anything else aimed at a container subnet is dropped unless a route rule
+# above already accepted it.
+{% for net in docker_ufw_internal_networks %}
+-A DOCKER-USER -j ufw-docker-logging-deny -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -d {{ net }}
+{% endfor %}
+{% for net in docker_ufw_internal_networks %}
+-A DOCKER-USER -j ufw-docker-logging-deny -p udp -m udp --dport 0:32767 -d {{ net }}
+{% endfor %}
+
+-A DOCKER-USER -j RETURN
+
+-A ufw-docker-logging-deny -m limit --limit 3/min --limit-burst 10 -j LOG --log-prefix "[UFW DOCKER BLOCK] "
+-A ufw-docker-logging-deny -j DROP
+
+COMMIT
