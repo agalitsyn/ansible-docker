@@ -1,0 +1,26 @@
+---
+
+- name: Check whether ufw is present
+  ansible.builtin.stat:
+    path: /etc/ufw/after.rules
+  register: docker_ufw_after_rules
+
+- name: Skip ufw integration when ufw is not installed
+  ansible.builtin.debug:
+    msg: "ufw is not installed, skipping the DOCKER-USER integration."
+  when: not docker_ufw_after_rules.stat.exists
+
+# Appended to the end of after.rules as its own *filter table. ufw feeds
+# this file to iptables-restore, which accepts repeated table sections.
+- name: Install the DOCKER-USER rules
+  ansible.builtin.blockinfile:
+    path: /etc/ufw/after.rules
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: docker"
+    block: "{{ lookup('ansible.builtin.template', 'ufw-docker.rules.j2') }}"
+    insertafter: EOF
+    owner: root
+    group: root
+    mode: "0640"
+    validate: "sh -c 'grep -q DOCKER-USER %s'"
+  when: docker_ufw_after_rules.stat.exists
+  notify: Reload ufw
